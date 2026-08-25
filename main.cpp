@@ -60,7 +60,7 @@ int main() {
     panther_lake::PantherLakeProcessor processor(true);
     
     // Simulate oneAPI program submissions targeting the integrated NVIDIA GPU
-    sycl::device dev(sycl::device_type::nvidia_gpu);
+    sycl::device dev(sycl::device_type::gpu);
     sycl::queue q(dev);
     
     struct SimulationPhase {
