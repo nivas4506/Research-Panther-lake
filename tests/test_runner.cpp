@@ -95,9 +95,20 @@ void test_simulator() {
     std::cout << "test_simulator PASS" << std::endl;
 }
 
+void test_execution_core_polymorphism() {
+    std::vector<std::unique_ptr<panther_lake::ExecutionCore>> cores;
+    cores.push_back(std::make_unique<panther_lake::CougarCoveCore>(0));
+    cores.push_back(std::make_unique<panther_lake::DarkmontCore>(1, false));
+    
+    assert(cores[0]->get_frequency_ghz() == 5.0);
+    assert(cores[1]->get_frequency_ghz() == 3.5);
+    std::cout << "test_execution_core_polymorphism PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
+    test_execution_core_polymorphism();
     test_gpu();
     test_npu();
     test_memory();

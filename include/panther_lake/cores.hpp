@@ -3,13 +3,15 @@
 
 namespace panther_lake {
 
-class CpuCore {
+class ExecutionCore {
 public:
-    CpuCore(int core_id, std::string type, double frequency_ghz, double ipc_target);
-    virtual ~CpuCore() = default;
+    ExecutionCore(int core_id, std::string type, double frequency_ghz, double ipc_target);
+    virtual ~ExecutionCore() = default;
     
     virtual unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) = 0;
     double get_power() const;
+    double get_frequency_ghz() const { return frequency_ghz_; }
+    void set_frequency_ghz(double freq) { frequency_ghz_ = freq; }
     unsigned long long get_retired_instructions() const { return instructions_retired_; }
     unsigned long long get_cycles_elapsed() const { return cycles_elapsed_; }
     unsigned long long get_l1_hits() const { return l1_hits_; }
@@ -28,13 +30,15 @@ protected:
     unsigned long long l1_misses_ = 0;
 };
 
-class CougarCoveCore : public CpuCore {
+using CpuCore = ExecutionCore; // For compatibility
+
+class CougarCoveCore : public ExecutionCore {
 public:
     CougarCoveCore(int core_id, double frequency_ghz = 5.0);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
 };
 
-class DarkmontCore : public CpuCore {
+class DarkmontCore : public ExecutionCore {
 public:
     DarkmontCore(int core_id, bool is_lp, double frequency_ghz = 3.5);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;

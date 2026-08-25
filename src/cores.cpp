@@ -3,10 +3,10 @@
 
 namespace panther_lake {
 
-CpuCore::CpuCore(int core_id, std::string type, double frequency_ghz, double ipc_target)
+ExecutionCore::ExecutionCore(int core_id, std::string type, double frequency_ghz, double ipc_target)
     : core_id_(core_id), type_(type), frequency_ghz_(frequency_ghz), ipc_target_(ipc_target) {}
 
-double CpuCore::get_power() const {
+double ExecutionCore::get_power() const {
     return active_power_watts_ + leakage_power_watts_;
 }
 
