@@ -46,12 +46,12 @@ private:
     bool is_lp_;
 };
 
-class BlackwellGpuCore : public ExecutionCore {
+class Xe3GpuCore : public ExecutionCore {
 public:
-    BlackwellGpuCore(int core_id, double frequency_ghz = 1.6);
+    Xe3GpuCore(int core_id, double frequency_ghz = 1.6);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
-    double get_vector_flops_per_cycle() const { return 512.0; }
-    double get_matrix_flops_per_cycle() const { return 1024.0; }
+    double get_vector_flops_per_cycle() const { return 128.0; } // 8 VEs * 16 FP32 FLOPs/cycle
+    double get_matrix_flops_per_cycle() const { return 1024.0; } // 8 XMX * 128 FP16 ops/cycle
 };
 
 } // namespace panther_lake

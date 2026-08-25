@@ -42,7 +42,7 @@ void print_dashboard(int step, const std::string& phase_name, double sim_time_ms
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "  COMPUTATIONAL SUB-UNITS UTILIZATION (FIRST-CLASS CORES):" << std::endl;
     std::cout << "    Cougar Cove (P-Cores):  [" << get_utilization_bar(cpu_util, 20) << "] " << std::setprecision(1) << cpu_util * 100.0 << "%" << std::endl;
-    std::cout << "    Blackwell GPU Cores:    [" << get_utilization_bar(gpu_util, 20) << "] " << std::setprecision(1) << gpu_util * 100.0 << "%" << std::endl;
+    std::cout << "    Intel Xe3 GPU Cores:    [" << get_utilization_bar(gpu_util, 20) << "] " << std::setprecision(1) << gpu_util * 100.0 << "%" << std::endl;
     std::cout << "    NPU 5 Tensor Engines:   [" << get_utilization_bar(npu_util, 20) << "] " << std::setprecision(1) << npu_util * 100.0 << "%" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "  UNIFIED MEMORY (LPDDR5X-9600) & FOVEROS FABRIC CONTROLS:" << std::endl;
@@ -59,7 +59,7 @@ int main() {
     // Instantiate processor in High Power config
     panther_lake::PantherLakeProcessor processor(true);
     
-    // Simulate oneAPI program submissions targeting the integrated NVIDIA GPU
+    // Simulate oneAPI program submissions targeting the integrated Intel Xe3 GPU
     sycl::device dev(sycl::device_type::gpu);
     sycl::queue q(dev);
     
@@ -78,7 +78,7 @@ int main() {
         {"Prompt Embedding Dispatch & Cache Map", 0.35, 0.05, 0.10, 80100000000ULL},
         {"Prompt Processing Layers (NPU 5.0 Active)", 0.10, 0.05, 0.95, 80500000000ULL},
         {"KV Cache Allocation & Memory Tagging", 0.25, 0.10, 0.20, 80600000000ULL},
-        {"Token Decode Wavefront (Blackwell GPU)", 0.15, 0.85, 0.05, 80800000000ULL},
+        {"Token Decode Wavefront (Intel Xe3 GPU)", 0.15, 0.85, 0.05, 80800000000ULL},
         {"Autoregressive Token Gen Loop (GPU Core)", 0.10, 0.98, 0.00, 81000000000ULL},
         {"Device-to-Host Output Stream Sync", 0.20, 0.05, 0.00, 81000005000ULL},
         {"oneAPI Context Clean & Synchronize", 0.05, 0.00, 0.00, 81000005000ULL}
@@ -129,7 +129,7 @@ int main() {
     std::cout << "  Total dynamic energy:     " << final_result.total_energy_joules * 1000.0 << " mJ" << std::endl;
     std::cout << "  Estimated peak core temp: " << final_result.peak_temp_c << " C" << std::endl;
     std::cout << "  oneAPI CPU Throughput:    " << final_result.cpu_ips / 1000000.0 << " MIPS" << std::endl;
-    std::cout << "  oneAPI GPU Performance:   " << final_result.gpu_gflops << " GFLOPS (Integrated Blackwell)" << std::endl;
+    std::cout << "  oneAPI GPU Performance:   " << final_result.gpu_gflops << " GFLOPS (Intel Xe3 Celestial Graphics)" << std::endl;
     std::cout << "  oneAPI NPU Performance:   " << final_result.npu_tops << " TOPS" << std::endl;
     std::cout << "========================================================\n" << std::endl;
     

@@ -56,12 +56,12 @@ unsigned long long DarkmontCore::execute(unsigned long long instructions, unsign
     return total_cycles;
 }
 
-BlackwellGpuCore::BlackwellGpuCore(int core_id, double frequency_ghz)
-    : ExecutionCore(core_id, "Blackwell GPU Core", frequency_ghz, 64.0) {
-    leakage_power_watts_ = 0.15;
+Xe3GpuCore::Xe3GpuCore(int core_id, double frequency_ghz)
+    : ExecutionCore(core_id, "Intel Xe3 GPU Core", frequency_ghz, 32.0) {
+    leakage_power_watts_ = 0.10;
 }
 
-unsigned long long BlackwellGpuCore::execute(unsigned long long instructions, unsigned long long mem_ops) {
+unsigned long long Xe3GpuCore::execute(unsigned long long instructions, unsigned long long mem_ops) {
     unsigned long long hits = static_cast<unsigned long long>(mem_ops * 0.98);
     unsigned long long misses = mem_ops - hits;
     l1_hits_ += hits;
@@ -74,8 +74,8 @@ unsigned long long BlackwellGpuCore::execute(unsigned long long instructions, un
     cycles_elapsed_ += total_cycles;
     instructions_retired_ += instructions;
     
-    // Blackwell core dynamic power: scales with frequency cubed
-    active_power_watts_ = 2.5 * std::pow(frequency_ghz_ / 1.6, 3);
+    // Intel Xe3 core dynamic power: scales with frequency cubed
+    active_power_watts_ = 1.8 * std::pow(frequency_ghz_ / 1.6, 3);
     
     return total_cycles;
 }

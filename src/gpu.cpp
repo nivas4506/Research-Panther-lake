@@ -6,20 +6,20 @@ namespace panther_lake {
 Xe3GPU::Xe3GPU(int xe_cores, double frequency_ghz)
     : xe_cores_(xe_cores), frequency_ghz_(frequency_ghz) {
     for (int i = 0; i < xe_cores_; ++i) {
-        gpu_cores_.push_back(std::make_unique<BlackwellGpuCore>(i, frequency_ghz_));
+        gpu_cores_.push_back(std::make_unique<Xe3GpuCore>(i, frequency_ghz_));
     }
 }
 
 unsigned long long Xe3GPU::execute(unsigned long long ops, unsigned long long matrix_ops) {
     unsigned long long max_cycles = 0;
     
-    // Distribute ops evenly across Blackwell GPU cores
+    // Distribute ops evenly across Intel Xe3 GPU cores
     unsigned long long ops_per_core = ops / xe_cores_;
     unsigned long long matrix_ops_per_core = matrix_ops / xe_cores_;
     
     for (auto& core : gpu_cores_) {
-        // CUDA core throughput = 512, Tensor core = 1024
-        unsigned long long instructions = (ops_per_core / 512) + (matrix_ops_per_core / 1024);
+        // Vector Engine throughput = 128, Matrix Engine (XMX) throughput = 1024
+        unsigned long long instructions = (ops_per_core / 128) + (matrix_ops_per_core / 1024);
         // Map GPU memory access proportional to operation footprint
         unsigned long long mem_ops = (ops_per_core + matrix_ops_per_core) / 64;
         
