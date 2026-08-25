@@ -9,4 +9,4 @@
 - [x] Task 7: Foveros 3D Interconnect
 - [x] Task 8: Platform Controller Tile
 - [x] Task 9: Simulator Orchestrator
-- [ ] Task 10: CLI Application & Workloads (with DESIGN.md/README.md)
+- [x] Task 10: CLI Application & Workloads (with DESIGN.md/README.md)
