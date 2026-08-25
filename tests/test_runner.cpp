@@ -2,6 +2,7 @@
 #include <cassert>
 #include "panther_lake/sycl_mock.hpp"
 #include "panther_lake/cores.hpp"
+#include "panther_lake/gpu.hpp"
 
 void test_sycl_mock() {
     sycl::device cpu_dev(sycl::device_type::cpu);
@@ -26,8 +27,18 @@ void test_cpu_cores() {
     std::cout << "test_cpu_cores PASS" << std::endl;
 }
 
+void test_gpu() {
+    panther_lake::Xe3GPU gpu(12, 2.5);
+    unsigned long long cycles = gpu.execute(1000000, 50000);
+    assert(cycles > 0);
+    assert(gpu.get_power() > 0.0);
+    assert(gpu.get_gflops() > 0.0);
+    std::cout << "test_gpu PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
+    test_gpu();
     return 0;
 }

@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(include)
 
-add_library(panther_lake_lib src/cores.cpp)
+add_library(panther_lake_lib src/cores.cpp src/gpu.cpp)
 
 add_executable(panther_lake_sim main.cpp)
 target_link_libraries(panther_lake_sim panther_lake_lib)
