@@ -4,6 +4,7 @@
 #include "panther_lake/cores.hpp"
 #include "panther_lake/gpu.hpp"
 #include "panther_lake/npu.hpp"
+#include "panther_lake/memory.hpp"
 
 void test_sycl_mock() {
     sycl::device cpu_dev(sycl::device_type::cpu);
@@ -46,10 +47,21 @@ void test_npu() {
     std::cout << "test_npu PASS" << std::endl;
 }
 
+void test_memory() {
+    panther_lake::LPDDR5XController memory(9600.0, 2);
+    assert(memory.get_peak_bandwidth_gbs() > 150.0);
+    
+    panther_lake::SystemLevelCache slc(24);
+    auto [hit, cycles] = slc.access(0x1000);
+    assert(cycles > 0);
+    std::cout << "test_memory PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
     test_gpu();
     test_npu();
+    test_memory();
     return 0;
 }
