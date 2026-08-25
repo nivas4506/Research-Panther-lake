@@ -18,7 +18,7 @@ std::string get_utilization_bar(double util, int width = 20) {
 }
 
 void print_dashboard(int step, const std::string& phase_name, double sim_time_ms, double power_w, double temp_c,
-                     double cpu_util, double gpu_util, double npu_util, unsigned long long bytes_routed) {
+                     double cpu_util, double gpu_util, double npu_util, unsigned long long bytes_routed, double tdp_cap = 35.0) {
     // ANSI Escape Code: Clear screen and home cursor
     std::cout << "\033[H\033[J";
     std::cout << "=====================================================================" << std::endl;
@@ -29,7 +29,7 @@ void print_dashboard(int step, const std::string& phase_name, double sim_time_ms
     std::cout << "  [Progress Bar]    [" << get_utilization_bar(step / 10.0, 30) << "] " << step * 10 << "%" << std::endl;
     std::cout << "---------------------------------------------------------------------" << std::endl;
     std::cout << "  TILE HEALTH & PHYSICAL METRICS:" << std::endl;
-    std::cout << "    SoC Active Power Draw:  " << std::setprecision(2) << power_w << " Watts  [CLAMPED AT 35W TDP]" << std::endl;
+    std::cout << "    SoC Active Power Draw:  " << std::setprecision(2) << power_w << " Watts  [CLAMPED AT " << tdp_cap << "W TDP]" << std::endl;
     std::cout << "    Compute Tile Temp:      " << std::setprecision(1) << temp_c << " C  ";
     if (temp_c > 90.0) {
         std::cout << "\033[1;31m[HOT - THERMAL THROTTLING ACTIVATED]\033[0m";
@@ -99,39 +99,92 @@ int main() {
     double sim_time_accumulated_ms = 0.0;
     double current_temp = 35.0;
     
-    // Execute live dashboard step-by-step (updating metrics to reflect 35W TDP cap and DVFS)
+    // ==========================================
+    // RUN 1: Normal Mode Simulation (35W TDP)
+    // ==========================================
     for (size_t i = 0; i < phases.size(); ++i) {
         int step = i + 1;
         const auto& phase = phases[i];
         
-        // Calculate estimated dynamic power under 35W clamp
         double raw_power = (phase.cpu_util * 15.0) + (phase.gpu_util * 45.0) + (phase.npu_util * 6.0) + 1.5;
-        double clamped_power = std::min(raw_power, 35.0); // Enforce 35W limit
+        double clamped_power = std::min(raw_power, 35.0);
         
         current_temp = 35.0 + 1.2 * clamped_power;
         sim_time_accumulated_ms = (step / 10.0) * 522.40;
         
         print_dashboard(step, phase.name, sim_time_accumulated_ms, clamped_power, current_temp,
-                        phase.cpu_util, phase.gpu_util, phase.npu_util, phase.bytes_transferred);
+                        phase.cpu_util, phase.gpu_util, phase.npu_util, phase.bytes_transferred, 35.0);
         
-        // Dynamic wait simulating real-world refresh rates
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
     
-    // Perform final high-precision simulator run
-    auto final_result = processor.run_workload(workload);
+    auto normal_result = processor.run_workload(workload);
     
-    std::cout << "\n================= FINAL SIMULATOR LOGS =================" << std::endl;
-    std::cout << "  Workload Scenario:        40 Billion Parameter FP16 Model" << std::endl;
-    std::cout << "  Execution completed in:   " << final_result.simulation_time_sec * 1000.0 << " ms" << std::endl;
-    std::cout << "  Total cycles elapsed:     " << final_result.total_cycles << " cycles" << std::endl;
-    std::cout << "  Average SoC power:        " << final_result.avg_power_watts << " W  (Power Clamp: 35W)" << std::endl;
-    std::cout << "  Total dynamic energy:     " << final_result.total_energy_joules * 1000.0 << " mJ" << std::endl;
-    std::cout << "  Estimated peak core temp: " << final_result.peak_temp_c << " C" << std::endl;
-    std::cout << "  oneAPI CPU Throughput:    " << final_result.cpu_ips / 1000000.0 << " MIPS" << std::endl;
-    std::cout << "  oneAPI GPU Performance:   " << final_result.gpu_gflops << " GFLOPS (Intel Xe3 Celestial Graphics)" << std::endl;
-    std::cout << "  oneAPI NPU Performance:   " << final_result.npu_tops << " TOPS" << std::endl;
-    std::cout << "========================================================\n" << std::endl;
+    std::cout << "\n>>> Normal Mode Simulation Complete. Transitioning to Battery-Saver Mode (15W TDP)... <<<" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    
+    // ==========================================
+    // RUN 2: Battery-Saver Mode Simulation (15W TDP)
+    // ==========================================
+    workload.battery_saver = true;
+    
+    for (size_t i = 0; i < phases.size(); ++i) {
+        int step = i + 1;
+        const auto& phase = phases[i];
+        
+        // P-cores are gated (cpu_util is downscaled/LP-only), memory footprint is scaled down
+        double saver_cpu_util = phase.cpu_util * 0.4;
+        double raw_power = (saver_cpu_util * 5.0) + (phase.gpu_util * 12.0) + (phase.npu_util * 2.0) + 0.8;
+        double clamped_power = std::min(raw_power, 15.0);
+        
+        current_temp = 35.0 + 1.2 * clamped_power;
+        sim_time_accumulated_ms = (step / 10.0) * 650.20;
+        
+        // Memory footprint scaled down 4x for INT4
+        unsigned long long scaled_bytes = phase.bytes_transferred / 4;
+        if (step <= 2) scaled_bytes = phase.bytes_transferred; // Setup stages stay same
+        
+        print_dashboard(step, phase.name, sim_time_accumulated_ms, clamped_power, current_temp,
+                        saver_cpu_util, phase.gpu_util, phase.npu_util, scaled_bytes, 15.0);
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    
+    auto saver_result = processor.run_workload(workload);
+    
+    // Clear screen and print final comparative logs
+    std::cout << "\033[H\033[J";
+    std::cout << "=====================================================================" << std::endl;
+    std::cout << "   Intel Panther Lake - oneAPI Comparative Simulator Final Logs      " << std::endl;
+    std::cout << "=====================================================================" << std::endl;
+    std::cout << "  MODE COMPARISON:            NORMAL MODE (35W)  vs  BATTERY-SAVER (15W)" << std::endl;
+    std::cout << "  -------------------------------------------------------------------" << std::endl;
+    std::cout << "  LLM Model Configuration:    40B Param (FP16)       40B Param (INT4)" << std::endl;
+    std::cout << "  Active Memory Footprint:    80 GB                  20 GB" << std::endl;
+    std::cout << "  Execution completed in:     " << std::fixed << std::setprecision(1)
+              << normal_result.simulation_time_sec * 1000.0 << " ms             " 
+              << saver_result.simulation_time_sec * 1000.0 << " ms" << std::endl;
+    std::cout << "  Total cycles elapsed:       " << normal_result.total_cycles << "             " 
+              << saver_result.total_cycles << " cycles" << std::endl;
+    std::cout << "  Average SoC power:          " << std::setprecision(2)
+              << normal_result.avg_power_watts << " W                  " 
+              << saver_result.avg_power_watts << " W" << std::endl;
+    std::cout << "  Total dynamic energy:       " << std::setprecision(1)
+              << normal_result.total_energy_joules * 1000.0 << " mJ             " 
+              << saver_result.total_energy_joules * 1000.0 << " mJ" << std::endl;
+    std::cout << "  Peak core temperature:      " 
+              << normal_result.peak_temp_c << " C                 " 
+              << saver_result.peak_temp_c << " C" << std::endl;
+    std::cout << "  oneAPI CPU Throughput:      " 
+              << normal_result.cpu_ips / 1000000.0 << " MIPS           " 
+              << saver_result.cpu_ips / 1000000.0 << " MIPS" << std::endl;
+    std::cout << "  oneAPI GPU Performance:     " 
+              << normal_result.gpu_gflops << " GFLOPS         " 
+              << saver_result.gpu_gflops << " GFLOPS" << std::endl;
+    std::cout << "  oneAPI NPU Performance:     " 
+              << normal_result.npu_tops << " TOPS             " 
+              << saver_result.npu_tops << " TOPS" << std::endl;
+    std::cout << "=====================================================================\n" << std::endl;
     
     return 0;
 }

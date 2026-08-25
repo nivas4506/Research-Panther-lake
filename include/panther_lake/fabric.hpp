@@ -6,7 +6,7 @@ namespace panther_lake {
 class FoverosInterconnect {
 public:
     FoverosInterconnect();
-    int route(const std::string& src, const std::string& dst, unsigned long long data_size_bytes);
+    unsigned long long route(const std::string& src, const std::string& dst, unsigned long long data_size_bytes);
     
     unsigned long long get_transfers_count() const { return transfers_count_; }
     unsigned long long get_total_bytes_routed() const { return total_bytes_routed_; }

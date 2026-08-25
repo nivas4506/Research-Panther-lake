@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cmath>
 
 namespace panther_lake {
 
@@ -11,7 +12,14 @@ public:
     virtual unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) = 0;
     double get_power() const;
     double get_frequency_ghz() const { return frequency_ghz_; }
-    void set_frequency_ghz(double freq) { frequency_ghz_ = freq; }
+    void set_frequency_ghz(double freq) {
+        if (frequency_ghz_ > 0.0) {
+            active_power_watts_ *= std::pow(freq / frequency_ghz_, 3);
+        }
+        frequency_ghz_ = freq;
+    }
+    void set_gated(bool gated) { gated_ = gated; }
+    bool is_gated() const { return gated_; }
     unsigned long long get_retired_instructions() const { return instructions_retired_; }
     unsigned long long get_cycles_elapsed() const { return cycles_elapsed_; }
     unsigned long long get_l1_hits() const { return l1_hits_; }
@@ -28,6 +36,7 @@ protected:
     double leakage_power_watts_ = 0.0;
     unsigned long long l1_hits_ = 0;
     unsigned long long l1_misses_ = 0;
+    bool gated_ = false;
 };
 
 using CpuCore = ExecutionCore; // For compatibility

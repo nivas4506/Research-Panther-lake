@@ -7,6 +7,7 @@ ExecutionCore::ExecutionCore(int core_id, std::string type, double frequency_ghz
     : core_id_(core_id), type_(type), frequency_ghz_(frequency_ghz), ipc_target_(ipc_target) {}
 
 double ExecutionCore::get_power() const {
+    if (gated_) return 0.0;
     return active_power_watts_ + leakage_power_watts_;
 }
 

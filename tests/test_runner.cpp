@@ -131,6 +131,31 @@ void test_dynamic_bandwidth_and_power_limits() {
     std::cout << "test_dynamic_bandwidth_and_power_limits PASS" << std::endl;
 }
 
+void test_battery_saver_mode() {
+    panther_lake::PantherLakeProcessor processor(true);
+    panther_lake::Workload workload;
+    workload.cpu_instructions = 5000000ULL;
+    workload.cpu_mem_ops = 1000000ULL;
+    workload.gpu_ops = 400000000ULL;
+    workload.gpu_matrix_ops = 100000000ULL;
+    workload.npu_m = 1024;
+    workload.npu_n = 1024;
+    workload.npu_k = 1024;
+    workload.battery_saver = true;
+    
+    for (const auto& core : processor.get_p_cores()) {
+        assert(!core->is_gated());
+    }
+    
+    auto res = processor.run_workload(workload);
+    assert(res.avg_power_watts <= 15.5);
+    
+    for (const auto& core : processor.get_p_cores()) {
+        assert(!core->is_gated());
+    }
+    std::cout << "test_battery_saver_mode PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
@@ -143,5 +168,6 @@ int main() {
     test_platform();
     test_simulator();
     test_dynamic_bandwidth_and_power_limits();
+    test_battery_saver_mode();
     return 0;
 }
