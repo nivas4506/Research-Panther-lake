@@ -5,6 +5,7 @@
 #include "panther_lake/gpu.hpp"
 #include "panther_lake/npu.hpp"
 #include "panther_lake/memory.hpp"
+#include "panther_lake/fabric.hpp"
 
 void test_sycl_mock() {
     sycl::device cpu_dev(sycl::device_type::cpu);
@@ -57,11 +58,20 @@ void test_memory() {
     std::cout << "test_memory PASS" << std::endl;
 }
 
+void test_fabric() {
+    panther_lake::FoverosInterconnect fabric;
+    int lat = fabric.route("ComputeTile", "GraphicsTile", 64);
+    assert(lat > 0);
+    assert(fabric.get_total_bytes_routed() == 64);
+    std::cout << "test_fabric PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
     test_gpu();
     test_npu();
     test_memory();
+    test_fabric();
     return 0;
 }
