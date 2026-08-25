@@ -46,4 +46,12 @@ private:
     bool is_lp_;
 };
 
+class BlackwellGpuCore : public ExecutionCore {
+public:
+    BlackwellGpuCore(int core_id, double frequency_ghz = 1.6);
+    unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
+    double get_vector_flops_per_cycle() const { return 512.0; }
+    double get_matrix_flops_per_cycle() const { return 1024.0; }
+};
+
 } // namespace panther_lake

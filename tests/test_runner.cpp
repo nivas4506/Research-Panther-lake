@@ -32,6 +32,14 @@ void test_cpu_cores() {
     std::cout << "test_cpu_cores PASS" << std::endl;
 }
 
+void test_blackwell_gpu_core() {
+    panther_lake::BlackwellGpuCore gpu_core(0, 1.6);
+    unsigned long long cycles = gpu_core.execute(100000, 20000);
+    assert(cycles > 0);
+    assert(gpu_core.get_power() > 0.0);
+    std::cout << "test_blackwell_gpu_core PASS" << std::endl;
+}
+
 void test_gpu() {
     panther_lake::Xe3GPU gpu(12, 2.5);
     unsigned long long cycles = gpu.execute(1000000, 50000);
@@ -108,6 +116,7 @@ void test_execution_core_polymorphism() {
 int main() {
     test_sycl_mock();
     test_cpu_cores();
+    test_blackwell_gpu_core();
     test_execution_core_polymorphism();
     test_gpu();
     test_npu();

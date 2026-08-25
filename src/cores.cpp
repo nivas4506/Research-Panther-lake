@@ -56,4 +56,28 @@ unsigned long long DarkmontCore::execute(unsigned long long instructions, unsign
     return total_cycles;
 }
 
+BlackwellGpuCore::BlackwellGpuCore(int core_id, double frequency_ghz)
+    : ExecutionCore(core_id, "Blackwell GPU Core", frequency_ghz, 64.0) {
+    leakage_power_watts_ = 0.15;
+}
+
+unsigned long long BlackwellGpuCore::execute(unsigned long long instructions, unsigned long long mem_ops) {
+    unsigned long long hits = static_cast<unsigned long long>(mem_ops * 0.98);
+    unsigned long long misses = mem_ops - hits;
+    l1_hits_ += hits;
+    l1_misses_ += misses;
+    
+    double exec_cycles = instructions / ipc_target_;
+    double mem_penalty = (hits * 2) + (misses * 20); // GPU has wide memory paths
+    unsigned long long total_cycles = static_cast<unsigned long long>(exec_cycles + (mem_penalty * 0.2));
+    
+    cycles_elapsed_ += total_cycles;
+    instructions_retired_ += instructions;
+    
+    // Blackwell core dynamic power: scales with frequency cubed
+    active_power_watts_ = 2.5 * std::pow(frequency_ghz_ / 1.6, 3);
+    
+    return total_cycles;
+}
+
 } // namespace panther_lake
