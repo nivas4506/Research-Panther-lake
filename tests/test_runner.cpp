@@ -113,6 +113,24 @@ void test_execution_core_polymorphism() {
     std::cout << "test_execution_core_polymorphism PASS" << std::endl;
 }
 
+void test_dynamic_bandwidth_and_power_limits() {
+    panther_lake::PantherLakeProcessor processor(true); // High power config
+    panther_lake::Workload workload;
+    workload.cpu_instructions = 10000000ULL;
+    workload.cpu_mem_ops = 2000000ULL;
+    workload.gpu_ops = 800000000ULL;
+    workload.gpu_matrix_ops = 200000000ULL;
+    workload.npu_m = 2048;
+    workload.npu_n = 2048;
+    workload.npu_k = 2048;
+    
+    auto res = processor.run_workload(workload);
+    
+    // Assert SoC power is capped at 35W
+    assert(res.avg_power_watts <= 35.5);
+    std::cout << "test_dynamic_bandwidth_and_power_limits PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
@@ -124,5 +142,6 @@ int main() {
     test_fabric();
     test_platform();
     test_simulator();
+    test_dynamic_bandwidth_and_power_limits();
     return 0;
 }
