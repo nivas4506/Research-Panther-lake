@@ -6,6 +6,7 @@
 #include "panther_lake/npu.hpp"
 #include "panther_lake/memory.hpp"
 #include "panther_lake/fabric.hpp"
+#include "panther_lake/platform.hpp"
 
 void test_sycl_mock() {
     sycl::device cpu_dev(sycl::device_type::cpu);
@@ -66,6 +67,15 @@ void test_fabric() {
     std::cout << "test_fabric PASS" << std::endl;
 }
 
+void test_platform() {
+    panther_lake::PlatformControllerTile pct;
+    int cycles = pct.simulate_io(1000000, 500000);
+    assert(cycles > 0);
+    assert(pct.get_power() > 0.0);
+    assert(pct.calculate_dvfs_voltage(5.0) > 0.7);
+    std::cout << "test_platform PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
@@ -73,5 +83,6 @@ int main() {
     test_npu();
     test_memory();
     test_fabric();
+    test_platform();
     return 0;
 }
