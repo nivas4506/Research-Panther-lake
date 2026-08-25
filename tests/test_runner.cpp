@@ -7,6 +7,7 @@
 #include "panther_lake/memory.hpp"
 #include "panther_lake/fabric.hpp"
 #include "panther_lake/platform.hpp"
+#include "panther_lake/simulator.hpp"
 
 void test_sycl_mock() {
     sycl::device cpu_dev(sycl::device_type::cpu);
@@ -76,6 +77,24 @@ void test_platform() {
     std::cout << "test_platform PASS" << std::endl;
 }
 
+void test_simulator() {
+    panther_lake::PantherLakeProcessor processor(true);
+    panther_lake::Workload workload;
+    workload.cpu_instructions = 500000;
+    workload.cpu_mem_ops = 100000;
+    workload.gpu_ops = 100000;
+    workload.gpu_matrix_ops = 20000;
+    workload.npu_m = 128; workload.npu_n = 128; workload.npu_k = 128;
+    workload.pcie_bytes = 50000;
+    workload.tb_bytes = 10000;
+    
+    auto res = processor.run_workload(workload);
+    assert(res.total_cycles > 0);
+    assert(res.avg_power_watts > 0.0);
+    assert(res.total_energy_joules > 0.0);
+    std::cout << "test_simulator PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
@@ -84,5 +103,6 @@ int main() {
     test_memory();
     test_fabric();
     test_platform();
+    test_simulator();
     return 0;
 }
