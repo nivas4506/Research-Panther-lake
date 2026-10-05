@@ -10,6 +10,7 @@ public:
     virtual ~ExecutionCore() = default;
     
     virtual unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) = 0;
+    virtual void reset_active_power() = 0;
     double get_power() const;
     double get_frequency_ghz() const { return frequency_ghz_; }
     void set_frequency_ghz(double freq) {
@@ -45,12 +46,14 @@ class CougarCoveCore : public ExecutionCore {
 public:
     CougarCoveCore(int core_id, double frequency_ghz = 5.0);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
+    void reset_active_power() override;
 };
 
 class DarkmontCore : public ExecutionCore {
 public:
     DarkmontCore(int core_id, bool is_lp, double frequency_ghz = 3.5);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
+    void reset_active_power() override;
 private:
     bool is_lp_;
 };
@@ -59,6 +62,7 @@ class Xe3GpuCore : public ExecutionCore {
 public:
     Xe3GpuCore(int core_id, double frequency_ghz = 1.6);
     unsigned long long execute(unsigned long long instructions, unsigned long long mem_ops) override;
+    void reset_active_power() override;
     double get_vector_flops_per_cycle() const { return 128.0; } // 8 VEs * 16 FP32 FLOPs/cycle
     double get_matrix_flops_per_cycle() const { return 1024.0; } // 8 XMX * 128 FP16 ops/cycle
 };

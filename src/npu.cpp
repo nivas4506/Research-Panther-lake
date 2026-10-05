@@ -3,7 +3,17 @@
 
 namespace panther_lake {
 
-NPU5::NPU5(double frequency_ghz) : frequency_ghz_(frequency_ghz) {}
+NPU5::NPU5(double frequency_ghz) : frequency_ghz_(frequency_ghz) {
+    reset_active_power(true);
+}
+
+void NPU5::reset_active_power(bool active) {
+    if (active) {
+        active_power_watts_ = 8.0 * (frequency_ghz_ / 1.8);
+    } else {
+        active_power_watts_ = 0.0;
+    }
+}
 
 unsigned long long NPU5::execute_matmul(int m, int n, int k) {
     unsigned long long total_macs = static_cast<unsigned long long>(m) * n * k;

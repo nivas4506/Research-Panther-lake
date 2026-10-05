@@ -14,6 +14,11 @@ double ExecutionCore::get_power() const {
 CougarCoveCore::CougarCoveCore(int core_id, double frequency_ghz)
     : CpuCore(core_id, "P-Core (Cougar Cove)", frequency_ghz, 3.0) {
     leakage_power_watts_ = 0.5;
+    reset_active_power();
+}
+
+void CougarCoveCore::reset_active_power() {
+    active_power_watts_ = 4.0 * std::pow(frequency_ghz_ / 5.0, 3);
 }
 
 unsigned long long CougarCoveCore::execute(unsigned long long instructions, unsigned long long mem_ops) {
@@ -36,6 +41,12 @@ unsigned long long CougarCoveCore::execute(unsigned long long instructions, unsi
 DarkmontCore::DarkmontCore(int core_id, bool is_lp, double frequency_ghz)
     : CpuCore(core_id, is_lp ? "LP E-Core" : "E-Core (Darkmont)", is_lp ? 2.5 : frequency_ghz, is_lp ? 1.1 : 1.5), is_lp_(is_lp) {
     leakage_power_watts_ = is_lp ? 0.05 : 0.1;
+    reset_active_power();
+}
+
+void DarkmontCore::reset_active_power() {
+    double base_power = is_lp_ ? 0.5 : 1.2;
+    active_power_watts_ = base_power * std::pow(frequency_ghz_ / 3.0, 3);
 }
 
 unsigned long long DarkmontCore::execute(unsigned long long instructions, unsigned long long mem_ops) {
@@ -60,6 +71,11 @@ unsigned long long DarkmontCore::execute(unsigned long long instructions, unsign
 Xe3GpuCore::Xe3GpuCore(int core_id, double frequency_ghz)
     : ExecutionCore(core_id, "Intel Xe3 GPU Core", frequency_ghz, 32.0) {
     leakage_power_watts_ = 0.10;
+    reset_active_power();
+}
+
+void Xe3GpuCore::reset_active_power() {
+    active_power_watts_ = 1.8 * std::pow(frequency_ghz_ / 1.6, 3);
 }
 
 unsigned long long Xe3GpuCore::execute(unsigned long long instructions, unsigned long long mem_ops) {

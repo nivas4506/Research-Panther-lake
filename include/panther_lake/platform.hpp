@@ -9,6 +9,7 @@ public:
     int simulate_io(unsigned long long pcie_traffic_bytes, unsigned long long tb_traffic_bytes);
     double calculate_dvfs_voltage(double freq_ghz) const;
     double get_power() const;
+    void reset_active_power();
 
 private:
     unsigned long long pcie_traffic_ = 0;

@@ -156,6 +156,25 @@ void test_battery_saver_mode() {
     std::cout << "test_battery_saver_mode PASS" << std::endl;
 }
 
+void test_original_baseline_mode() {
+    panther_lake::PantherLakeProcessor processor(true);
+    panther_lake::Workload workload;
+    workload.cpu_instructions = 10000000ULL;
+    workload.cpu_mem_ops = 2000000ULL;
+    workload.gpu_ops = 800000000ULL;
+    workload.gpu_matrix_ops = 200000000ULL;
+    workload.npu_m = 2048;
+    workload.npu_n = 2048;
+    workload.npu_k = 2048;
+    workload.is_original_baseline = true;
+    
+    auto res = processor.run_workload(workload);
+    // In original baseline, power runs unthrottled at nominal ~41.2W
+    assert(res.avg_power_watts > 35.0);
+    assert(res.total_cycles > 0);
+    std::cout << "test_original_baseline_mode PASS" << std::endl;
+}
+
 int main() {
     test_sycl_mock();
     test_cpu_cores();
@@ -169,5 +188,6 @@ int main() {
     test_simulator();
     test_dynamic_bandwidth_and_power_limits();
     test_battery_saver_mode();
+    test_original_baseline_mode();
     return 0;
 }

@@ -32,4 +32,8 @@ double PlatformControllerTile::get_power() const {
     return active_power_watts_ + leakage_power_watts_;
 }
 
+void PlatformControllerTile::reset_active_power() {
+    active_power_watts_ = 0.5;
+}
+
 } // namespace panther_lake

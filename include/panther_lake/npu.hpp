@@ -9,6 +9,9 @@ public:
     double get_power() const;
     double get_max_tops() const;
     unsigned long long get_macs_completed() const { return macs_completed_; }
+    double get_frequency_ghz() const { return frequency_ghz_; }
+    void reset_active_power(bool active);
+    void set_active_power(double power) { active_power_watts_ = power; }
 
 private:
     double frequency_ghz_;

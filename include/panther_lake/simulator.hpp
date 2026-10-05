@@ -21,6 +21,7 @@ struct Workload {
     unsigned long long pcie_bytes = 0;
     unsigned long long tb_bytes = 0;
     bool battery_saver = false;
+    bool is_original_baseline = false;
 };
 
 struct SimulationResult {

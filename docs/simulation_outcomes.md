@@ -1,25 +1,30 @@
 # Intel Panther Lake Comparative Simulation Report
-## Normal Mode (35W TDP) vs. Battery-Saver Mode (15W TDP)
+## Original Baseline vs. Modified Chip (35W Normal & 15W Battery-Saver)
 
-This document details the comparative simulation outcomes of running a disaggregated **40 Billion Parameter LLM workload** on the mock Intel Panther Lake SoC disaggregated architecture.
+This document details the comparative simulation outcomes of running a disaggregated **40 Billion Parameter LLM workload** across the **Original Panther Lake SoC Baseline** and the **Modified Chip (AI Superchip)** architecture.
 
 ---
 
 ## 1. Comparative Performance Metrics
 
-The table below summarizes the key telemetry findings across both simulation configurations:
+The table below summarizes the key telemetry findings across all three simulation configurations:
 
-| Metric | Normal Mode | Battery-Saver Mode | Delta / Improvement |
+| Metric | Original Baseline | Modified (35W TDP) | Modified (15W TDP) |
 | :--- | :--- | :--- | :--- |
-| **LLM Weight Precision** | FP16 (2.0 bytes/param) | INT4 (0.5 bytes/param) | 4× weight compression |
-| **Active Memory Footprint** | 80 GB | 20 GB | -60 GB memory traffic |
-| **TDP Power Envelope** | 35.0 Watts | 15.0 Watts | 57.1% power reduction |
-| **Measured Average SoC Power** | 5.20 Watts | 14.89 Watts | Clamped within ULP ceiling |
-| **Execution Time** | 3,170.1 ms | 2,093.0 ms | **34.0% faster completion** |
-| **Total Fabric Cycles** | 6.34 Billion | 4.18 Billion | 34.0% fewer cycles |
-| **Estimated Peak Core Temp** | 41.2 °C | 52.9 °C | Controlled temperature rise |
-| **oneAPI CPU Throughput** | 157.7 MIPS | 238.9 MIPS | 51.5% higher throughput |
-| **oneAPI GPU Throughput** | 50.5 GFLOPS | 76.4 GFLOPS | 51.3% higher throughput |
+| **Architecture / Design** | Panther Lake Gen-1 | AI Superchip Normal | AI Superchip ULP |
+| **Frequency / DVFS Policy** | Fixed (No DVFS) | Adaptive 35W DVFS | Power-Gated 15W DVFS |
+| **Memory Partitioning** | Static 50/50 Split | Dynamic (85% Shift) | Dynamic (85% Shift) |
+| **LLM Weight Precision** | FP16 (2.0 bytes/param) | FP16 (2.0 bytes/param) | INT4 (0.5 bytes/param) |
+| **Active Memory Footprint** | 80.0 GB | 80.0 GB | 20.0 GB (-60 GB) |
+| **Cougar Cove P-Cores** | Active @ 5.0 GHz | Scaled @ 4.2 GHz | **Gated (0.0W Power)** |
+| **Measured SoC Power Draw** | 67.20 Watts | 33.54 Watts | 15.41 Watts |
+| **Execution Time (Latency)** | 3,517.3 ms | 3,316.4 ms | **2,239.3 ms (36.3% Faster)** |
+| **Total Cycles Elapsed** | 7.03 Billion | 6.63 Billion | **4.48 Billion** |
+| **Total Dynamic Energy** | 236.4 J | 111.2 J | **34.5 J (85.4% Energy Saved)** |
+| **Peak SoC Operating Temp** | 115.6 °C (Thermal Hazard) | 75.2 °C (Safe) | 53.5 °C (Optimal) |
+| **oneAPI CPU Throughput** | 142.2 MIPS | 150.8 MIPS | 223.3 MIPS |
+| **oneAPI GPU Performance** | 45.5 GFLOPS | 48.2 GFLOPS | 71.5 GFLOPS |
+| **NPU Acceleration Metric** | 4.88 GOPS | 5.18 GOPS | 7.67 GOPS |
 
 ---
 

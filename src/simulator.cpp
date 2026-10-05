@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
+#include <iostream>
 
 namespace panther_lake {
 
@@ -31,23 +32,38 @@ PantherLakeProcessor::PantherLakeProcessor(bool high_power_config)
 }
 
 SimulationResult PantherLakeProcessor::run_workload(const Workload& workload) {
-    // 1. Dynamic Bandwidth Partitioning Setup
+    // Reset active power of all cores and sub-components to nominal workload-ready states
+    for (auto& core : p_cores_) core->reset_active_power();
+    for (auto& core : e_cores_) core->reset_active_power();
+    for (auto& core : lp_cores_) core->reset_active_power();
+    for (auto& core : gpu_.get_gpu_cores()) core->reset_active_power();
+    npu_.reset_active_power(workload.npu_m > 0 && workload.npu_n > 0 && workload.npu_k > 0);
+    pct_.reset_active_power();
+
+    // 1. Memory Bandwidth Partitioning Setup
     double gpu_bw_fraction = 0.15;
     double npu_bw_fraction = 0.15;
     
     bool npu_active = (workload.npu_m > 0 && workload.npu_n > 0 && workload.npu_k > 0);
     bool gpu_active = (workload.gpu_ops > 0 || workload.gpu_matrix_ops > 0);
     
-    if (npu_active && !gpu_active) {
-        npu_bw_fraction = 0.85;
-        gpu_bw_fraction = 0.05;
-    } else if (gpu_active && !npu_active) {
-        gpu_bw_fraction = 0.85;
-        npu_bw_fraction = 0.05;
-    } else if (gpu_active && npu_active) {
-        // Contention / overlap case
-        gpu_bw_fraction = 0.60;
-        npu_bw_fraction = 0.30;
+    if (workload.is_original_baseline) {
+        // Original Panther Lake Baseline: Static 50/50 memory bandwidth allocation
+        gpu_bw_fraction = 0.50;
+        npu_bw_fraction = 0.50;
+    } else {
+        // Modified Chip: Dynamic Bandwidth Partitioning to prevent memory bus bottlenecks
+        if (npu_active && !gpu_active) {
+            npu_bw_fraction = 0.85;
+            gpu_bw_fraction = 0.05;
+        } else if (gpu_active && !npu_active) {
+            gpu_bw_fraction = 0.85;
+            npu_bw_fraction = 0.05;
+        } else if (gpu_active && npu_active) {
+            // Contention / overlap case
+            gpu_bw_fraction = 0.60;
+            npu_bw_fraction = 0.30;
+        }
     }
     
     double peak_bw = memory_ctrl_.get_peak_bandwidth_gbs();
@@ -55,7 +71,7 @@ SimulationResult PantherLakeProcessor::run_workload(const Workload& workload) {
     double npu_allocated_bw = peak_bw * npu_bw_fraction;
 
     // Estimate memory transfer times based on workload size (FP16 is 2.0 bytes; INT4 is 0.5 bytes in battery saver)
-    double precision_multiplier = workload.battery_saver ? 0.5 : 2.0;
+    double precision_multiplier = (workload.battery_saver && !workload.is_original_baseline) ? 0.5 : 2.0;
     double gpu_data_bytes = (workload.gpu_ops * precision_multiplier);
     double npu_data_bytes = (static_cast<double>(workload.npu_m) * workload.npu_n * workload.npu_k * precision_multiplier);
     
@@ -78,7 +94,7 @@ SimulationResult PantherLakeProcessor::run_workload(const Workload& workload) {
     
     double target_tdp = workload.battery_saver ? 15.0 : 35.0; // Dynamic 15W/35W TDP Wall
     
-    if (workload.battery_saver) {
+    if (workload.battery_saver && !workload.is_original_baseline) {
         for (auto& core : p_cores_) {
             core->set_gated(true);
         }
@@ -86,8 +102,8 @@ SimulationResult PantherLakeProcessor::run_workload(const Workload& workload) {
     
     double total_power = 0.0;
     
-    // Dynamic Voltage & Frequency Scaling Throttling Loop
-    while (true) {
+    if (workload.is_original_baseline) {
+        // Original Panther Lake Baseline: Fixed clock frequencies without DVFS loop
         double cpu_power = 0.0;
         for (auto& core : p_cores_) cpu_power += core->get_power();
         for (auto& core : e_cores_) cpu_power += core->get_power();
@@ -99,24 +115,51 @@ SimulationResult PantherLakeProcessor::run_workload(const Workload& workload) {
         
         total_power = cpu_power + gpu_power + npu_power + pct_power;
         
-        // Stop scaling if power is within TDP envelope or we hit minimum clocks
-        if (total_power <= target_tdp || (p_freq <= 1.5 && gpu_freq <= 0.8)) {
-            break;
+        std::cout << "[DEBUG] Mode: OriginalBaseline"
+                  << " | Raw Power: " << total_power 
+                  << "W | p_freq: " << p_freq 
+                  << " | e_freq: " << e_freq 
+                  << " | gpu_freq: " << gpu_freq << std::endl;
+    } else {
+        // Modified Chip: Dynamic Voltage & Frequency Scaling (DVFS) Throttling Loop
+        while (true) {
+            double cpu_power = 0.0;
+            for (auto& core : p_cores_) cpu_power += core->get_power();
+            for (auto& core : e_cores_) cpu_power += core->get_power();
+            for (auto& core : lp_cores_) cpu_power += core->get_power();
+            
+            double gpu_power = gpu_.get_power();
+            double npu_power = npu_.get_power();
+            double pct_power = pct_.get_power();
+            
+            total_power = cpu_power + gpu_power + npu_power + pct_power;
+            
+            // Stop scaling if power is within TDP envelope or we hit minimum clocks
+            if (total_power <= target_tdp || (p_freq <= 1.5 && gpu_freq <= 0.8)) {
+                break;
+            }
+            
+            // Step down frequencies dynamically
+            if (gpu_freq > 0.8) {
+                gpu_freq -= 0.1;
+                for (auto& core : gpu_.get_gpu_cores()) core->set_frequency_ghz(gpu_freq);
+            }
+            if (p_freq > 1.5) {
+                p_freq -= 0.1;
+                for (auto& core : p_cores_) core->set_frequency_ghz(p_freq);
+            }
+            if (e_freq > 1.0) {
+                e_freq -= 0.1;
+                for (auto& core : e_cores_) core->set_frequency_ghz(e_freq);
+            }
         }
         
-        // Step down frequencies dynamically
-        if (gpu_freq > 0.8) {
-            gpu_freq -= 0.1;
-            for (auto& core : gpu_.get_gpu_cores()) core->set_frequency_ghz(gpu_freq);
-        }
-        if (p_freq > 1.5) {
-            p_freq -= 0.1;
-            for (auto& core : p_cores_) core->set_frequency_ghz(p_freq);
-        }
-        if (e_freq > 1.0) {
-            e_freq -= 0.1;
-            for (auto& core : e_cores_) core->set_frequency_ghz(e_freq);
-        }
+        std::cout << "[DEBUG] Mode: " << (workload.battery_saver ? "BatterySaver" : "Normal")
+                  << " | Target TDP: " << target_tdp 
+                  << " | DVFS Power: " << total_power 
+                  << " | p_freq: " << p_freq 
+                  << " | e_freq: " << e_freq 
+                  << " | gpu_freq: " << gpu_freq << std::endl;
     }
 
     // 3. Execution Simulation

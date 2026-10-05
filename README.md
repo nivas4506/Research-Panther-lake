@@ -39,14 +39,20 @@ cmake --build build
 
 ## Running the Simulator
 
-Run the compiled executable to simulate running a oneAPI workload on Panther Lake:
+Run the compiled executable to simulate running oneAPI workloads on Panther Lake and the Modified Chip (AI Superchip):
 
-```bash
-# Windows
+```cmd
+:: Run Full Comparative Simulation (Original Baseline vs Modified 35W vs Modified 15W)
 .\build\panther_lake_sim.exe
 
-# Linux/macOS
-./build/panther_lake_sim
+:: Run Original Panther Lake Baseline Simulation Only
+.\build\panther_lake_sim.exe --original
+
+:: Run Modified Chip (AI Superchip) Simulations Only
+.\build\panther_lake_sim.exe --modified
+
+:: Run Instantly (No Animation Delay)
+.\build\panther_lake_sim.exe --quick
 ```
 
 ## Running the Unit Tests
