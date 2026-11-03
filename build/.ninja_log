@@ -1,0 +1,23 @@
+# ninja log v7
+294	2776	8094283185008291	CMakeFiles/panther_lake_sim.dir/main.cpp.obj	eb9e8fd3f2cc20a0
+1687	3162	8095419191601435	panther_lake_sim.exe	e5c186666f8a8433
+71	455	8095425608671594	build.ninja	70a89253ee67997
+71	455	8095425608406983	C:/Users/A/OneDrive/Documents/chip/build/cmake_install.cmake	70a89253ee67997
+370	2224	8095419018793599	CMakeFiles/test_runner.dir/tests/test_runner.cpp.obj	59744461afe3e8fc
+1730	3163	8095419192039461	test_runner.exe	f06e33a6d0e8f10
+38	1794	8094283182436878	CMakeFiles/panther_lake_lib.dir/src/cores.cpp.obj	663d24391630261f
+876	1686	8095419183494696	panther_lake_lib.lib	239e678a432f3aeb
+70	1976	8094283182778869	CMakeFiles/panther_lake_lib.dir/src/gpu.cpp.obj	a100be7f6012982f
+111	1545	8094283183169070	CMakeFiles/panther_lake_lib.dir/src/npu.cpp.obj	71a503805d244030
+95	493	8093688809284296	CMakeFiles/panther_lake_lib.dir/src/memory.cpp.obj	b3a3033569274c29
+168	1573	8093916628379973	CMakeFiles/panther_lake_lib.dir/src/fabric.cpp.obj	1d77439c77009698
+160	1820	8094283183668692	CMakeFiles/panther_lake_lib.dir/src/platform.cpp.obj	744b956ea889d9c4
+71	874	8095419175445729	CMakeFiles/panther_lake_lib.dir/src/simulator.cpp.obj	4ad2f56acae79776
+61	9069	8099565756250093	CMakeFiles/panther_lake_lib.dir/src/simulator.cpp.obj	4ad2f56acae79776
+607	9507	8099565761703095	CMakeFiles/test_runner.dir/tests/test_runner.cpp.obj	59744461afe3e8fc
+491	10520	8099565760548231	CMakeFiles/panther_lake_sim.dir/main.cpp.obj	eb9e8fd3f2cc20a0
+9081	13675	8099565846433069	panther_lake_lib.lib	239e678a432f3aeb
+13675	32170	8099565892374952	panther_lake_sim.exe	e5c186666f8a8433
+13833	32392	8099565893954997	test_runner.exe	f06e33a6d0e8f10
+153	3236	8099570389676857	CMakeFiles/panther_lake_sim.dir/main.cpp.obj	eb9e8fd3f2cc20a0
+3239	4746	8099570420517169	panther_lake_sim.exe	e5c186666f8a8433

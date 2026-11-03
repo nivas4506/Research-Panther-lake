@@ -1,0 +1,5 @@
+C:/Users/A/OneDrive/Documents/chip/build/CMakeFiles/panther_lake_lib.dir
+C:/Users/A/OneDrive/Documents/chip/build/CMakeFiles/panther_lake_sim.dir
+C:/Users/A/OneDrive/Documents/chip/build/CMakeFiles/test_runner.dir
+C:/Users/A/OneDrive/Documents/chip/build/CMakeFiles/edit_cache.dir
+C:/Users/A/OneDrive/Documents/chip/build/CMakeFiles/rebuild_cache.dir
